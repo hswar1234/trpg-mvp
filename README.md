@@ -48,7 +48,9 @@ npm run db:push && npm run start
 5. Share the Render URL with friends and test multiplayer directly over the internet.
 
 ### Notes for Render
-- SQLite uses a persistent disk at `/var/data` via `DATABASE_URL=file:/var/data/dev.db`.
+- Free tier에서는 persistent disk를 붙일 수 없어 `DATABASE_URL=file:./dev.db`(ephemeral)로 동작합니다.
+- 따라서 Free tier에서는 재시작/재배포 시 방/로그 데이터가 초기화될 수 있습니다.
+- 데이터 영속이 필요하면 유료 플랜(디스크) 또는 PostgreSQL로 전환하세요.
 - This MVP is designed for a single instance (Socket.IO + in-memory presence).
 - If you scale to multiple instances later, move to PostgreSQL + Redis adapter.
 

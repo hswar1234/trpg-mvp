@@ -7,22 +7,13 @@ services:
     buildCommand: npm ci && npm run db:generate && npm run build
     startCommand: npm run db:push && npm run start
     healthCheckPath: /api/llm/health
-    disk:
-      name: trpg-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
       - key: HOSTNAME
         value: 0.0.0.0
       - key: DATABASE_URL
-        value: file:/var/data/dev.db
-      - key: NEXT_PUBLIC_API_URL
-        fromService:
-          type: web
-          name: chronicle-forge-trpg
-          property: url
+        value: file:./dev.db
       - key: OPENAI_API_KEY
         sync: false
       - key: NEXT_PUBLIC_ALLOWED_LLM_MODELS
