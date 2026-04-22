@@ -4,10 +4,12 @@ services:
     env: node
     plan: free
     autoDeploy: true
-    buildCommand: npm ci && npm run db:generate && npm run build
+    buildCommand: npm ci --include=dev && npm run db:generate && npm run build
     startCommand: npm run db:push && npm run start
     healthCheckPath: /api/llm/health
     envVars:
+      - key: NODE_VERSION
+        value: "22"
       - key: NODE_ENV
         value: production
       - key: HOSTNAME

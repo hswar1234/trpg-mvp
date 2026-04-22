@@ -53,6 +53,7 @@ npm run db:push && npm run start
 - 데이터 영속이 필요하면 유료 플랜(디스크) 또는 PostgreSQL로 전환하세요.
 - This MVP is designed for a single instance (Socket.IO + in-memory presence).
 - If you scale to multiple instances later, move to PostgreSQL + Redis adapter.
+- Prisma CLI(`db:generate`, `db:push`)를 쓰므로 빌드 시 devDependency 포함 설치가 필요합니다 (`npm ci --include=dev`).
 
 ## UX Behavior (updated)
 - 게임 **시작 전**:
