@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: chronicle-forge-trpg
+    env: node
+    plan: free
+    autoDeploy: true
+    buildCommand: npm ci && npm run db:generate && npm run build
+    startCommand: npm run db:push && npm run start
+    healthCheckPath: /api/llm/health
+    disk:
+      name: trpg-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOSTNAME
+        value: 0.0.0.0
+      - key: DATABASE_URL
+        value: file:/var/data/dev.db
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: chronicle-forge-trpg
+          property: url
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_ALLOWED_LLM_MODELS
+        value: gpt-5.4,gpt-4.1-mini,gpt-4.1,gpt-4o-mini
+      - key: NEXT_PUBLIC_DEFAULT_MODEL
+        value: gpt-5.4
+      - key: PRESENCE_RECONCILE_INTERVAL_MS
+        value: "30000"
+      - key: EMPTY_ROOM_GRACE_MS
+        value: "180000"

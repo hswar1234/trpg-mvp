@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String    @id @default(cuid())
+  username  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  roomPlayers RoomPlayer[]
+
+  @@map("users")
+}
+
+model Room {
+  id              String    @id @default(cuid())
+  name            String
+  scenarioTheme   String
+  llmModel        String    @default("gpt-4.1-mini")
+  llmApiKey       String?
+  ruleset         String    @default("d20-basic")
+  maxPlayers      Int       @default(4)
+  isPrivate       Boolean   @default(false)
+  password        String?
+  turnMode        String    @default("simultaneous")
+  rollMode        String    @default("manual_input")
+  statGenerationMode String @default("standard_array")
+
+  hostId          String
+  gameStatus      String    @default("waiting")
+  currentTurnId   String?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  players         RoomPlayer[]
+  sessions        GameSession[]
+  turns           Turn[]
+  logs            GameLog[]
+
+  @@index([hostId])
+  @@map("rooms")
+}
+
+model RoomPlayer {
+  id              String    @id @default(cuid())
+  userId          String
+  roomId          String
+  isHost          Boolean   @default(false)
+  connected       Boolean   @default(false)
+  ready           Boolean   @default(false)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room            Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  character       Character?
+  actions         ActionSubmission[]
+  rolls           RollSubmission[]
+  checks          CheckRequest[]
+
+  @@unique([userId, roomId])
+  @@index([roomId])
+  @@map("room_players")
+}
+
+model Character {
+  id              String    @id @default(cuid())
+  roomPlayerId    String    @unique
+
+  name            String
+  class           String
+  level           Int       @default(1)
+  hp              Int       @default(10)
+  maxHp           Int       @default(10)
+  mp              Int       @default(5)
+  maxMp           Int       @default(5)
+
+  strength        Int       @default(10)
+  dexterity       Int       @default(10)
+  intelligence    Int       @default(10)
+  charisma        Int       @default(10)
+  constitution    Int       @default(10)
+  wisdom          Int       @default(10)
+
+  skills          String    @default("{}")
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  roomPlayer      RoomPlayer @relation(fields: [roomPlayerId], references: [id], onDelete: Cascade)
+
+  @@map("characters")
+}
+
+model GameSession {
+  id              String    @id @default(cuid())
+  roomId          String
+
+  sceneNumber     Int       @default(0)
+  currentNarrative String  @default("")
+  currentSceneJson String?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  finishedAt      DateTime?
+
+  room            Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  turns           Turn[]
+
+  @@index([roomId])
+  @@map("game_sessions")
+}
+
+model Turn {
+  id              String    @id @default(cuid())
+  roomId          String
+  sessionId       String
+
+  turnNumber      Int
+  status          String    @default("action_waiting")
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  room            Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  session         GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  actions         ActionSubmission[]
+  checks          CheckRequest[]
+  rolls           RollSubmission[]
+  resolutions     ResolutionLog[]
+
+  @@index([roomId])
+  @@index([sessionId])
+  @@map("turns")
+}
+
+model ActionSubmission {
+  id              String    @id @default(cuid())
+  turnId          String
+  roomPlayerId    String
+
+  actionText      String
+  submittedAt     DateTime  @default(now())
+
+  turn            Turn      @relation(fields: [turnId], references: [id], onDelete: Cascade)
+  roomPlayer      RoomPlayer @relation(fields: [roomPlayerId], references: [id], onDelete: Cascade)
+  checkRequests   CheckRequest[]
+
+  @@index([turnId])
+  @@index([roomPlayerId])
+  @@map("action_submissions")
+}
+
+model CheckRequest {
+  id              String    @id @default(cuid())
+  turnId          String
+  actionId        String
+  roomPlayerId    String
+
+  checkType       String
+  skill           String?
+  diceType        String    @default("d20")
+  dc              Int
+  reason          String
+
+  createdAt       DateTime  @default(now())
+
+  turn            Turn      @relation(fields: [turnId], references: [id], onDelete: Cascade)
+  action          ActionSubmission @relation(fields: [actionId], references: [id], onDelete: Cascade)
+  roomPlayer      RoomPlayer @relation(fields: [roomPlayerId], references: [id], onDelete: Cascade)
+  roll            RollSubmission?
+  resolution      ResolutionLog?
+
+  @@index([turnId])
+  @@index([actionId])
+  @@map("check_requests")
+}
+
+model RollSubmission {
+  id              String    @id @default(cuid())
+  checkId         String    @unique
+  turnId          String
+  roomPlayerId    String
+
+  diceResult      Int
+  submittedAt     DateTime  @default(now())
+
+  checkRequest    CheckRequest @relation(fields: [checkId], references: [id], onDelete: Cascade)
+  turn            Turn      @relation(fields: [turnId], references: [id], onDelete: Cascade)
+  roomPlayer      RoomPlayer @relation(fields: [roomPlayerId], references: [id], onDelete: Cascade)
+
+  @@index([turnId])
+  @@map("roll_submissions")
+}
+
+model ResolutionLog {
+  id              String    @id @default(cuid())
+  turnId          String
+  checkId         String    @unique
+
+  result          String    @default("failed")
+  finalValue      Int
+  statModifier    Int       @default(0)
+  skillBonus      Int       @default(0)
+  dc              Int
+
+  createdAt       DateTime  @default(now())
+
+  turn            Turn      @relation(fields: [turnId], references: [id], onDelete: Cascade)
+  checkRequest    CheckRequest @relation(fields: [checkId], references: [id], onDelete: Cascade)
+
+  @@index([turnId])
+  @@map("resolution_logs")
+}
+
+model GameLog {
+  id              String    @id @default(cuid())
+  roomId          String
+
+  logType         String
+  content         String
+  turnNumber      Int       @default(0)
+
+  createdAt       DateTime  @default(now())
+
+  room            Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@map("game_logs")
+}

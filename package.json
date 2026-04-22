@@ -1,0 +1,41 @@
+{
+  "name": "trpg_project",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node --experimental-strip-types server.ts",
+    "build": "next build",
+    "start": "node --experimental-strip-types server.ts",
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push"
+  },
+  "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "better-sqlite3": "^12.9.0",
+    "date-fns": "^4.1.0",
+    "next": "16.2.4",
+    "openai": "^6.34.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20.19.39",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "prisma": "^7.7.0",
+    "tailwindcss": "^4",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
